@@ -4,6 +4,7 @@
 #include "blockable_count_actor.h"
 #include "count_down_latch.h"
 #include "mini_actor.h"
+#include "stateful_actor.h"
 
 std::vector<std::string> split(const std::string &input,
                                char delim) {
@@ -78,7 +79,7 @@ void handleInitiation(caf::actor_system &system, std::vector<std::string> &args)
 
     std::vector<caf::actor> actor_list;
     auto start = std::chrono::high_resolution_clock::now();
-    for(int i=0; i<n; i++) {
+    for (int i = 0; i < n; i++) {
         auto actor = system.spawn(miniFun, n);
         actor_list.push_back(actor);
     }
@@ -89,7 +90,7 @@ void handleInitiation(caf::actor_system &system, std::vector<std::string> &args)
     for (auto actor : actor_list) {
         // std::cout << "actor id: " << actor->id() << std::endl;
         // std::cout << "actor address: " << caf::to_string(actor->address()) << std::endl;
-        caf::actor_cast<caf::event_based_actor*>(actor)->quit();
+        caf::actor_cast<caf::event_based_actor *>(actor)->quit();
     }
 
     std::cout << "Initiation:" << std::endl;
@@ -101,6 +102,22 @@ void handleInitiation(caf::actor_system &system, std::vector<std::string> &args)
 void handleSingleProducerSending(caf::actor_system &system, std::vector<std::string> &args) {
     int n = std::atoi(args[1].c_str());
 
+    CountDownLatch finish_latch(1);
+    auto actor = system.spawn(countActorFun, &finish_latch, n);
+
+    EmptyMessage empty_message;
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < n; i++) {
+        caf::anon_send(actor, empty_message);
+    }
+    finish_latch.await();
+    auto spent_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start).count();
+
+    std::cout << "Initiation:" << std::endl;
+    std::cout << "\t" << n << " ops" << std::endl;
+    std::cout << "\t" << spent_time << " ns" << std::endl;
+    std::cout << "\t" << (n * 1000'000'000L / spent_time) << " ops/s" << std::endl;
 }
 
 [[noreturn]] void caf_main(caf::actor_system &system, const cdcf::actor_system::Config &config) {
