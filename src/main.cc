@@ -77,7 +77,6 @@ void handlePingThroughput(caf::actor_system &system, std::vector<std::string> &a
     CountDownLatch finish_latch(p * 2);
     std::vector<caf::actor> actors(p * 2);
 
-    auto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < p; i++) {
         auto actor1 = system.spawn(pingThroughputActorFun, &finish_latch, n / p / 2);
         auto actor2 = system.spawn(pingThroughputActorFun, &finish_latch, n / p / 2);
@@ -85,6 +84,8 @@ void handlePingThroughput(caf::actor_system &system, std::vector<std::string> &a
         actors.push_back(actor1);
         actors.push_back(actor2);
     }
+
+    auto start = std::chrono::high_resolution_clock::now();
 
     for (int i = 0; i < actors.size(); i += 2) {
         caf::anon_send(actors[i], PingThroughputMessage{actors[i + 1]});
