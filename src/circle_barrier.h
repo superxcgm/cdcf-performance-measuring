@@ -1,5 +1,5 @@
 //
-// Created by Yuecheng Pei on 2020/9/30.
+// ref: https://github.com/anandkulkarnisg/CyclicBarrier
 //
 
 #ifndef CDCF_PERFORMANCE_MEASURING_CIRCLE_BARRIER_H
