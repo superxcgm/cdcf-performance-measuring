@@ -54,4 +54,7 @@ public:
     ~CyclicBarrier();                            // Default destructor of the CyclicBarrier class.
 };
 
+void print_out(const std::string &str1, const std::string &str2, const std::thread::id &id);
+void print_out(const std::string &str1);
+
 #endif //CDCF_PERFORMANCE_MEASURING_CIRCLE_BARRIER_H

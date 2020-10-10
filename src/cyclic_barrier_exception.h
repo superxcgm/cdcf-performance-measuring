@@ -12,7 +12,7 @@
 // This is thrown during consturction due to invalid parameter being passed.
 
 struct IllegalArgumentException : public std::exception {
-    const char *IllegalArgumentException_msg = "Exception : The argument passed to the barrier is invalid. Please enter valid unsigned +ve integer";
+    const char* IllegalArgumentException_msg = "Exception : The argument passed to the barrier is invalid. Please enter valid unsigned +ve integer";
 
     const char *what() const throw() {
         return (IllegalArgumentException_msg);
