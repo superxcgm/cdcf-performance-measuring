@@ -60,6 +60,15 @@ int roundToEven(int x) {
     return x;
 }
 
+void handlePingLatency(caf::actor_system &system, std::vector<std::string> &args) {
+    int n = std::atoi(args[1].c_str());
+    n = roundToEven(n);
+    CountDownLatch finish_latch(2);
+    // histogram
+
+
+}
+
 void handlePingThroughput(caf::actor_system &system, std::vector<std::string> &args, int pair_count) {
     int n = std::atoi(args[1].c_str());
 
@@ -69,9 +78,9 @@ void handlePingThroughput(caf::actor_system &system, std::vector<std::string> &a
     std::vector<caf::actor> actors(p * 2);
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < p; i++){
-        auto actor1 = system.spawn(pingThroughputActorFun, &finish_latch, n/p/2);
-        auto actor2 = system.spawn(pingThroughputActorFun, &finish_latch, n/p/2);
+    for (int i = 0; i < p; i++) {
+        auto actor1 = system.spawn(pingThroughputActorFun, &finish_latch, n / p / 2);
+        auto actor2 = system.spawn(pingThroughputActorFun, &finish_latch, n / p / 2);
 
         actors.push_back(actor1);
         actors.push_back(actor2);
@@ -123,6 +132,12 @@ void handlePingThroughput(caf::actor_system &system, std::vector<std::string> &a
 
         if (command == "enqueueing") {
             handleEnqueueing(system, args);
+            continue;
+        }
+
+        if (command == "ping-latency") {
+            int pair_count = 10'000;
+            handlePingLatency(system, args);
             continue;
         }
 
