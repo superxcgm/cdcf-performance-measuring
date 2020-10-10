@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 project(cdcf_performance_measuring)
 
-set(CMAKE_CXX_STANDARD 17)
+INCLUDE_DIRECTORIES("/usr/local/include")
 
+set(CMAKE_CXX_STANDARD 17)
 set(CONAN_DISABLE_CHECK_COMPILER 1)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/build)
@@ -19,5 +20,5 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 
 conan_basic_setup()
 
-add_executable(${PROJECT_NAME} src/main.cc)
-target_link_libraries(${PROJECT_NAME} caf::caf cdcf::cdcf)
+add_executable(${PROJECT_NAME} src/main.cc src/circle_barrier.cc)
+target_link_libraries(${PROJECT_NAME} caf::caf cdcf::cdcf )
