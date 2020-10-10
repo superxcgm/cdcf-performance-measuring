@@ -10,9 +10,6 @@
 #include<chrono>
 #include<thread>
 
-#ifndef TimeUtils_H
-#define TimeUtils_H
-
 enum class TimeUnit {
     MilliSeconds, MicroSeconds, Seconds, NanoSeconds, Minutes, Hours
 };
@@ -75,6 +72,5 @@ public:
     }
 };
 
-#endif
 
 #endif //CDCF_PERFORMANCE_MEASURING_TIME_UTILS_H

@@ -5,6 +5,7 @@
 #include "count_down_latch.h"
 #include "mini_actor.h"
 #include "stateful_actor.h"
+#include "circle_barrier.h"
 
 std::vector<std::string> split(const std::string &input,
                                char delim) {
@@ -120,6 +121,63 @@ void handleSingleProducerSending(caf::actor_system &system, std::vector<std::str
     std::cout << "\t" << (n * 1000'000'000L / spent_time) << " ops/s" << std::endl;
 }
 
+std::mutex cout_mutex;
+
+void printOut(const std::string &str1, const std::string &str2, const std::thread::id &id) {
+    std::unique_lock<std::mutex> lock(cout_mutex);
+    std::cout << str1 << id << str2 << std::endl;
+    lock.unlock();
+}
+
+void handleMultiProducerSending(caf::actor_system &system, std::vector<std::string> &args) {
+    int n = std::atoi(args[1].c_str());
+    int parallelism = 10;
+    if (args.size() > 2) {
+        parallelism = std::atoi(args[2].c_str());;
+    }
+
+    std::vector<std::thread *> thread_vector;
+    int num_of_each_message = (n / parallelism) * parallelism;
+    CyclicBarrier barrier(parallelism + 1);
+    for (int i = 0; i < parallelism; i++) {
+        std::thread *th =
+                new std::thread([&]() {
+                    std::cout << "[INFO] thread #" << th->get_id() << " starts" << std::endl << std::flush;
+                    try {
+                        int returnCount = barrier.await();
+                        printOut("I am currently in thread id = ",
+                                 ".My barrier state count is = " + std::to_string(returnCount),
+                                 std::this_thread::get_id());
+                    } catch (const std::exception &e) {
+                        std::cout << e.what() << std::endl;
+                    }
+                });
+        thread_vector.emplace_back(th);
+
+    }
+
+    for (auto t : thread_vector) {
+        t->join();
+    }
+
+//    CountDownLatch finish_latch(1);
+//    auto actor = system.spawn(countActorFun, &finish_latch, n);
+//
+//    EmptyMessage empty_message;
+//    auto start = std::chrono::high_resolution_clock::now();
+//    for (int i = 0; i < n; i++) {
+//        caf::anon_send(actor, empty_message);
+//    }
+//    finish_latch.await();
+//    auto spent_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
+//            std::chrono::high_resolution_clock::now() - start).count();
+
+//    std::cout << "Initiation:" << std::endl;
+//    std::cout << "\t" << n << " ops" << std::endl;
+//    std::cout << "\t" << spent_time << " ns" << std::endl;
+//    std::cout << "\t" << (n * 1000'000'000L / spent_time) << " ops/s" << std::endl;
+}
+
 [[noreturn]] void caf_main(caf::actor_system &system, const cdcf::actor_system::Config &config) {
     cdcf::Logger::Init(config);
 
@@ -167,6 +225,12 @@ void handleSingleProducerSending(caf::actor_system &system, std::vector<std::str
             handleSingleProducerSending(system, args);
             continue;
         }
+
+        if (command == "multi-producer-sending") {
+            handleMultiProducerSending(system, args);
+            continue;
+        }
+
 
     }
 }

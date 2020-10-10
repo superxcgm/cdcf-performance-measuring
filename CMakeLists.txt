@@ -20,5 +20,5 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 
 conan_basic_setup()
 
-add_executable(${PROJECT_NAME} src/main.cc src/circle_barrier.cc)
-target_link_libraries(${PROJECT_NAME} caf::caf cdcf::cdcf)
+add_executable(${PROJECT_NAME} src/hello.cc src/circle_barrier.cc)
+target_link_libraries(${PROJECT_NAME} caf::caf cdcf::cdcf )
