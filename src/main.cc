@@ -94,11 +94,10 @@ void handlePingThroughput(caf::actor_system &system, std::vector<std::string> &a
     for (int i = 0; i < actors.size(); i += 2) {
         caf::anon_send(actors[i], PingThroughputMessage{actors[i + 1]});
     }
-    finish_latch.countDown();
+    finish_latch.await();
 
     auto spent_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::high_resolution_clock::now() - start).count();
-    finish_latch.await();
 
     std::cout << "Ping throughput:" << std::endl;
     std::cout << "\t" << n << " ops" << std::endl;
