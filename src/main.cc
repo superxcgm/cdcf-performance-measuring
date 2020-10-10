@@ -8,6 +8,7 @@
 #include "circle_barrier.h"
 #include <unistd.h>
 #include "ping_throughput_actor.h"
+#include "ping_latency_actor.h"
 
 std::vector<std::string> split(const std::string &input,
                                char delim) {
@@ -68,9 +69,20 @@ void handlePingLatency(caf::actor_system &system, std::vector<std::string> &args
     int n = std::atoi(args[1].c_str());
     n = roundToEven(n);
     CountDownLatch finish_latch(2);
-    // histogram
+    // todo: histogram
 
+    auto actor1 = system.spawn(pingLatencyActorFun, &finish_latch, n / 2);
+    auto actor2 = system.spawn(pingLatencyActorFun, &finish_latch, n / 2);
+    auto start = std::chrono::high_resolution_clock::now();
+    caf::anon_send(actor1, PingLatencyMessage{actor2});
+    finish_latch.await();
+    auto spent_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start).count();
 
+    std::cout << "Ping latency:" << std::endl;
+    std::cout << "\t" << n << " ops" << std::endl;
+    std::cout << "\t" << spent_time << " ns" << std::endl;
+    // todo
 }
 
 void handlePingThroughput(caf::actor_system &system, std::vector<std::string> &args, int pair_count) {
@@ -325,7 +337,6 @@ void handleMaxThroughput(caf::actor_system &system, std::vector<std::string> &ar
         }
 
         if (command == "ping-latency") {
-            int pair_count = 10'000;
             handlePingLatency(system, args);
             continue;
         }
