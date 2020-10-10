@@ -6,6 +6,7 @@
 #include "mini_actor.h"
 #include "stateful_actor.h"
 #include "circle_barrier.h"
+#include <unistd.h>
 
 std::vector<std::string> split(const std::string &input,
                                char delim) {
@@ -115,53 +116,95 @@ void handleSingleProducerSending(caf::actor_system &system, std::vector<std::str
     auto spent_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::high_resolution_clock::now() - start).count();
 
-    std::cout << "Initiation:" << std::endl;
+    std::cout << "Single-producer sending:" << std::endl;
     std::cout << "\t" << n << " ops" << std::endl;
     std::cout << "\t" << spent_time << " ns" << std::endl;
     std::cout << "\t" << (n * 1000'000'000L / spent_time) << " ops/s" << std::endl;
 }
 
 void handleMultiProducerSending(caf::actor_system &system, std::vector<std::string> &args) {
-    int n = std::atoi(args[1].c_str());
     int parallelism = 10;
     if (args.size() > 2) {
         parallelism = std::atoi(args[2].c_str());;
     }
+    int n = std::atoi(args[1].c_str()) / parallelism * parallelism;
+    int num_of_each_message = n / parallelism;
 
-    int num_of_each_message = (n / parallelism) * parallelism / parallelism;
     CyclicBarrier barrier(parallelism + 1);
-    CountDownLatch finish_latch(parallelism);
+    CountDownLatch finish_latch(1);
     std::vector<std::thread *> thread_vector;
     EmptyMessage empty_message;
 
-
+    auto actor = system.spawn(countActorFun, &finish_latch, n);
     for (int i = 0; i < parallelism; i++) {
         std::thread *th =
                 new std::thread([&]() {
-                    print_out("[INFO] thread #", " starts", th->get_id());
+                    // print_out("[INFO] thread #", " starts", th->get_id());
                     try {
-                        auto actor = system.spawn(countActorFun, &finish_latch, num_of_each_message);
                         barrier.await();
-                        for (int j=0; j<num_of_each_message; j++) {
+
+                        for (int j = 0; j < num_of_each_message; j++) {
                             caf::anon_send(actor, empty_message);
                         }
                     } catch (const std::exception &e) {
                         std::cout << e.what() << std::endl;
                     }
                 });
+        //TODO： GC new 在堆上
         thread_vector.emplace_back(th);
     }
 
-    print_out("@@@@ 11");
-    barrier.await();
-    print_out("@@@@ 22");
     auto start = std::chrono::high_resolution_clock::now();
+    barrier.await();
     finish_latch.await();
-    print_out("@@@@ 33");
     auto spent_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::high_resolution_clock::now() - start).count();
 
-    std::cout << "Initiation:" << std::endl;
+    std::cout << "Multi-producer sending:" << std::endl;
+    std::cout << "\t" << n << " ops" << std::endl;
+    std::cout << "\t" << spent_time << " ns" << std::endl;
+    std::cout << "\t" << (n * 1000'000'000L / spent_time) << " ops/s" << std::endl;
+}
+
+void handleMaxThroughput(caf::actor_system &system, std::vector<std::string> &args) {
+    int parallelism = 10;
+    if (args.size() > 2) {
+        parallelism = std::atoi(args[2].c_str());;
+    }
+    int n = std::atoi(args[1].c_str()) / parallelism * parallelism;
+    int num_of_each_message = n / parallelism;
+
+    CyclicBarrier barrier(parallelism + 1);
+    CountDownLatch finish_latch(parallelism);
+    std::vector<std::thread *> thread_vector;
+    EmptyMessage empty_message;
+
+    for (int i = 0; i < parallelism; i++) {
+        std::thread *th =
+                new std::thread([&]() {
+                    // print_out("[INFO] thread #", " starts", th->get_id());
+                    try {
+                        auto actor = system.spawn(countActorFun, &finish_latch, num_of_each_message);
+                        barrier.await();
+
+                        for (int j = 0; j < num_of_each_message; j++) {
+                            caf::anon_send(actor, empty_message);
+                        }
+                    } catch (const std::exception &e) {
+                        std::cout << e.what() << std::endl;
+                    }
+                });
+        // TODO：
+        thread_vector.emplace_back(th);
+    }
+
+    auto start = std::chrono::high_resolution_clock::now();
+    barrier.await();
+    finish_latch.await();
+    auto spent_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start).count();
+
+    std::cout << "Max throughput:" << std::endl;
     std::cout << "\t" << n << " ops" << std::endl;
     std::cout << "\t" << spent_time << " ns" << std::endl;
     std::cout << "\t" << (n * 1000'000'000L / spent_time) << " ops/s" << std::endl;
@@ -215,13 +258,17 @@ void handleMultiProducerSending(caf::actor_system &system, std::vector<std::stri
             continue;
         }
 
-        if (command == "m") {
-        //if (command == "multi-producer-sending") {
+        if (command == "multi-producer-sending") {
+            //if (command == "multi-producer-sending") {
             handleMultiProducerSending(system, args);
             continue;
         }
 
-
+        if (command == "max-throughput") {
+            //if (command == "multi-producer-sending") {
+            handleMaxThroughput(system, args);
+            continue;
+        }
     }
 }
 

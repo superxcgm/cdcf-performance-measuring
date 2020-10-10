@@ -206,6 +206,7 @@ CyclicBarrier::~CyclicBarrier() {
 }
 
 std::mutex cout_mutex;
+
 void print_out(const std::string &str1, const std::string &str2, const std::thread::id &id) {
     std::unique_lock<std::mutex> lock(cout_mutex);
     std::cout << str1 << id << str2 << std::endl;
