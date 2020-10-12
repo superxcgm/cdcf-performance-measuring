@@ -282,29 +282,34 @@ long long handlePingThroughput(caf::actor_system &system, std::vector<std::strin
 [[noreturn]] void caf_main(caf::actor_system &system, const cdcf::actor_system::Config &config) {
     cdcf::Logger::Init(config);
 
-    long long (*ptr[8])(caf::actor_system &system, std::vector<std::string> &args){
-            handleEnqueueing, handleDequeueing, handleInitiation, handleSingleProducerSending,
-            handleMultiProducerSending, handleMaxThroughput, handlePingLatency, handlePingThroughput
-    };
+//    long long (*ptr[8])(caf::actor_system &system, std::vector<std::string> &args){
+//            handleEnqueueing, handleDequeueing, handleInitiation, handleSingleProducerSending,
+//            handleMultiProducerSending, handleMaxThroughput, handlePingLatency, handlePingThroughput
+//    };
+//
+//    std::vector<std::string> csv_context{
+//            "Enqueueing, ", "Dequeueing, ", "Initiation, ", "SingleproducerSending, ", "MultiproducerSending, ",
+//            "MaxThroughput, ", "PingLatency, ", "PingThroughput, "
+//    };
+//
+//    for (int j = 0; j < 8; ++j) {
+//        long long round_ouput = 0;
+//        for (int i = 0; i < 10; ++i) {
+//            std::string line = "NULL 100000";
+//            auto args = split(line, ' ');
+//            round_ouput += ptr[j](system, args);
+//        }
+//        csv_context[j] += std::to_string(round_ouput);
+//    }
+//
+//    for (const auto &item : csv_context) {
+//        std::cout << item << std::endl;
+//    }
 
-    std::vector<std::string> csv_context{
-            "Enqueueing, ", "Dequeueing, ", "Initiation, ", "SingleproducerSending, ", "MultiproducerSending, ",
-            "MaxThroughput, ", "PingLatency, ", "PingThroughput, "
-    };
-
-    for (int j = 0; j < 8; ++j) {
-        std::string round_ouput;
-        for (int i = 0; i < 10; ++i) {
-            std::string line = "NULL 1000000";
-            auto args = split(line, ' ');
-            round_ouput += std::to_string(ptr[j](system, args)) + ", ";
-        }
-        csv_context[j] += round_ouput;
-    }
-
-    for (const auto &item : csv_context) {
-        std::cout << item << std::endl;
-    }
+    std::streambuf* coutBuf = std::cout.rdbuf();
+    std::ofstream of("out.txt");
+    std::streambuf* fileBuf = of.rdbuf();
+    std::cout.rdbuf(fileBuf);
 
     while (true) {
         std::cout << "> ";
@@ -323,6 +328,8 @@ long long handlePingThroughput(caf::actor_system &system, std::vector<std::strin
         }
 
         if (command == "q" || command == "quit") {
+            std::cout.rdbuf(coutBuf);
+            std::cout << "exit" << std::endl;
             exit(0);
         }
 
