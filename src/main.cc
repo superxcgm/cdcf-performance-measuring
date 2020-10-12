@@ -7,6 +7,8 @@
 #include "stateful_actor.h"
 #include "circle_barrier.h"
 #include <unistd.h>
+#include <hdr_histogram.h>
+#include <hdr_histogram_log.h>
 
 std::vector<std::string> split(const std::string &input,
                                char delim) {
@@ -212,7 +214,6 @@ void handleMaxThroughput(caf::actor_system &system, std::vector<std::string> &ar
 
 [[noreturn]] void caf_main(caf::actor_system &system, const cdcf::actor_system::Config &config) {
     cdcf::Logger::Init(config);
-
     while (true) {
         std::cout << "> ";
         std::string line;
