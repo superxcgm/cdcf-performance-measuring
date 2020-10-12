@@ -40,8 +40,5 @@ message("----------------------")
 #set_property(TARGET ${PROJECT_NAME} PROPERTY IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/libhdr_histogram_static.a)
 
 find_package(hdr_histogram 0.10.0)
-add_executable(${PROJECT_NAME}_hdr_demo src/test.cc)
-target_link_libraries(${PROJECT_NAME}_hdr_demo  hdr_histogram::hdr_histogram)
-
 add_executable(${PROJECT_NAME} src/main.cc src/circle_barrier.cc)
 target_link_libraries(${PROJECT_NAME} caf::caf cdcf::cdcf hdr_histogram::hdr_histogram)
