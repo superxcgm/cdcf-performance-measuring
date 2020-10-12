@@ -11,6 +11,7 @@
 #include <hdr_histogram_log.h>
 #include "ping_throughput_actor.h"
 #include "ping_latency_actor.h"
+#include "latency_histogram.h"
 
 std::vector<std::string> split(const std::string &input,
                                char delim) {
@@ -71,14 +72,10 @@ void handlePingLatency(caf::actor_system &system, std::vector<std::string> &args
     int n = std::atoi(args[1].c_str());
     n = roundToEven(n);
     CountDownLatch finish_latch(2);
-    // todo: histogram
 
-    struct hdr_histogram* latency_histogram;
-    hdr_init(1, INT64_C(3600000000), 3, &latency_histogram);
-
-
-    auto actor1 = system.spawn(pingLatencyActorFun, &finish_latch, n / 2);
-    auto actor2 = system.spawn(pingLatencyActorFun, &finish_latch, n / 2);
+    LatencyHistogram latency_histogram;
+    auto actor1 = system.spawn(pingLatencyActorFun, &finish_latch, n / 2, &latency_histogram);
+    auto actor2 = system.spawn(pingLatencyActorFun, &finish_latch, n / 2, &latency_histogram);
     auto start = std::chrono::high_resolution_clock::now();
     caf::anon_send(actor1, PingLatencyMessage{actor2});
     finish_latch.await();
@@ -88,7 +85,11 @@ void handlePingLatency(caf::actor_system &system, std::vector<std::string> &args
     std::cout << "Ping latency:" << std::endl;
     std::cout << "\t" << n << " ops" << std::endl;
     std::cout << "\t" << spent_time << " ns" << std::endl;
-    // todo
+    std::vector<double> list = {0.0, 0.5, 0.9, 0.99, 0.999, 0.9999, 1.0};
+    for (auto &x: list){
+        auto temp_value = hdr_value_at_percentile(latency_histogram.latency_histogram_, x * 100);
+        printf("\tp(%.5f) = %8lld ns/op\n", x, temp_value);
+    }
 }
 
 void handlePingThroughput(caf::actor_system &system, std::vector<std::string> &args, int pair_count) {

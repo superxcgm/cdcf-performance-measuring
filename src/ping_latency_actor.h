@@ -3,6 +3,7 @@
 
 #include <caf/all.hpp>
 #include "./count_down_latch.h"
+#include "latency_histogram.h"
 
 struct PingLatencyActorState {
     int i;
@@ -18,11 +19,12 @@ typename Inspector::result_type inspect(Inspector &f, const PingLatencyMessage &
 }
 
 caf::behavior pingLatencyActorFun(caf::stateful_actor<PingLatencyActorState> *self,
-                                     CountDownLatch *finish_latch, int n) {
+                                  CountDownLatch *finish_latch, int n, LatencyHistogram *latency_histogram
+) {
     self->state.i = n;
     return {
             [=](PingLatencyMessage &pinglatencymessage) {
-                //todo: record
+                latency_histogram->Record();
                 if (self->state.i > 0 && pinglatencymessage.sender != nullptr) {
                     caf::actor new_sender = nullptr;
                     if (self->state.i > 1) {
