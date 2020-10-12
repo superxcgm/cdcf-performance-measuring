@@ -71,6 +71,10 @@ void handlePingLatency(caf::actor_system &system, std::vector<std::string> &args
     CountDownLatch finish_latch(2);
     // todo: histogram
 
+    struct hdr_histogram* latency_histogram;
+    hdr_init(1, INT64_C(3600000000), 3, &latency_histogram);
+
+
     auto actor1 = system.spawn(pingLatencyActorFun, &finish_latch, n / 2);
     auto actor2 = system.spawn(pingLatencyActorFun, &finish_latch, n / 2);
     auto start = std::chrono::high_resolution_clock::now();
