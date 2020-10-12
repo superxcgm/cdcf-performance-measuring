@@ -7,6 +7,8 @@
 #include "stateful_actor.h"
 #include "circle_barrier.h"
 #include <unistd.h>
+#include <hdr_histogram.h>
+#include <hdr_histogram_log.h>
 #include "ping_throughput_actor.h"
 #include "ping_latency_actor.h"
 
