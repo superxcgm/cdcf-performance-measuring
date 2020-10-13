@@ -20,8 +20,6 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 
 conan_basic_setup()
 
-
-
 message("----------------------")
 message("--------  ${PROJECT_SOURCE_DIR}/lib  ------")
 message("----------------------")
