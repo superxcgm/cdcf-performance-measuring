@@ -8,7 +8,7 @@
 class LatencyHistogram {
 public:
     LatencyHistogram() {
-        hdr_init(1, INT64_C(3600000000), 2, &latency_histogram_);
+        hdr_init(1, INT64_C(1000'000'000), 2, &latency_histogram_);
     }
 
     void Record() {

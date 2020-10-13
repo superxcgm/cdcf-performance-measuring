@@ -88,7 +88,7 @@ void handlePingLatency(caf::actor_system &system, std::vector<std::string> &args
     std::vector<double> list = {0.0, 0.5, 0.9, 0.99, 0.999, 0.9999, 1.0};
     for (auto &x: list){
         auto temp_value = hdr_value_at_percentile(latency_histogram.latency_histogram_, x * 100);
-        printf("\tp(%.5f) = %8lld ns/op\n", x, temp_value);
+        printf("\tp(%1.5f) = %8lld ns/op\n", x, temp_value);
     }
 }
 
