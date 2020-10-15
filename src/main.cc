@@ -69,39 +69,6 @@ long long handleEnqueueing(caf::actor_system &system, std::vector<std::string> &
     return n * 1000'000'000L / spent_time;
 }
 
-void handlePingThroughput(caf::actor_system &system, std::vector<std::string> &args, int pair_count) {
-    int n = std::atoi(args[1].c_str());
-
-    int p = roundToEven(pair_count);
-    n = roundToParallelism(n, p);
-    CountDownLatch finish_latch(p * 2);
-    std::vector<caf::actor> actors(p * 2);
-
-    for (int i = 0; i < p; i++) {
-        auto actor1 = system.spawn(pingThroughputActorFun, &finish_latch, n / p / 2);
-        auto actor2 = system.spawn(pingThroughputActorFun, &finish_latch, n / p / 2);
-
-        actors.push_back(actor1);
-        actors.push_back(actor2);
-    }
-
-    auto start = std::chrono::high_resolution_clock::now();
-
-    for (int i = 0; i < actors.size(); i += 2) {
-        caf::anon_send(actors[i], PingThroughputMessage{actors[i + 1]});
-    }
-    finish_latch.await();
-
-    auto spent_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::high_resolution_clock::now() - start).count();
-
-    std::cout << "Ping throughput:" << std::endl;
-    std::cout << "\t" << n << " ops" << std::endl;
-    std::cout << "\t" << p << " pairs" << std::endl;
-    std::cout << "\t" << spent_time << " ns" << std::endl;
-    std::cout << "\t" << (n * 1000'000'000L / spent_time) << " ops/s" << std::endl;
-}
-
 long long handleDequeueing(caf::actor_system &system, std::vector<std::string> &args) {
     int n = std::atoi(args[1].c_str());
     CountDownLatch start_latch(1);

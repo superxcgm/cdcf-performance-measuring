@@ -22,7 +22,8 @@ public:
     }
 
     struct hdr_histogram *latency_histogram_{};
-    std::chrono::time_point<std::chrono::steady_clock> t0_;
+    // std::chrono::time_point<std::chrono::steady_clock> t0_;
+    std::chrono::time_point<std::chrono::high_resolution_clock> t0_;
 };
 
 #endif //CDCF_PERFORMANCE_MEASURING_LATENCY_HISTOGRAM_H
