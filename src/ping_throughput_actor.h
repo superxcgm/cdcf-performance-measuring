@@ -3,6 +3,7 @@
 
 #include <caf/all.hpp>
 #include "./count_down_latch.h"
+#include <hdr_histogram.h>
 
 struct PingThroughputActorState {
     int i;
