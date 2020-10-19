@@ -110,7 +110,8 @@ long long handleInitiation(caf::actor_system &system, std::vector<std::string> &
     for (auto actor : actor_list) {
         // std::cout << "actor id: " << actor->id() << std::endl;
         // std::cout << "actor address: " << caf::to_string(actor->address()) << std::endl;
-        caf::actor_cast<caf::event_based_actor *>(actor)->quit();
+        // caf::actor_cast<caf::event_based_actor *>(actor)->quit();
+        caf::anon_send(actor, caf::exit_reason::kill);
     }
 
     std::cout << "Initiation:" << std::endl;
@@ -170,7 +171,7 @@ long long handleMultiProducerSending(caf::actor_system &system, std::vector<std:
                         std::cout << e.what() << std::endl;
                     }
                 });
-        //TODO： GC new 在堆上
+        //TODO： GC new 在堆上 shared point
         thread_vector.emplace_back(th);
     }
 
