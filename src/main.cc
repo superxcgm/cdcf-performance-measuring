@@ -144,7 +144,7 @@ long long handleSingleProducerSending(caf::actor_system &system, std::vector<std
 }
 
 long long handleMultiProducerSending(caf::actor_system &system, std::vector<std::string> &args) {
-    int parallelism = 10;
+    int parallelism = 1;
     if (args.size() > 2) {
         parallelism = std::atoi(args[2].c_str());;
     }
@@ -170,9 +170,11 @@ long long handleMultiProducerSending(caf::actor_system &system, std::vector<std:
                     } catch (const std::exception &e) {
                         std::cout << e.what() << std::endl;
                     }
+                    return;
                 });
         //TODO： GC new 在堆上 shared point
         thread_vector.emplace_back(th);
+        // th->detach();
     }
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -180,6 +182,15 @@ long long handleMultiProducerSending(caf::actor_system &system, std::vector<std:
     finish_latch.await();
     auto spent_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::high_resolution_clock::now() - start).count();
+
+    //TODO： 这个解决方案能用，但不好，可选智能指针
+    for( auto th : thread_vector) {
+        th->join();
+    }
+
+    for( auto th : thread_vector) {
+        delete th;
+    }
 
     std::cout << "Multi-producer sending:" << std::endl;
     std::cout << "\t" << n << " ops" << std::endl;
@@ -189,7 +200,7 @@ long long handleMultiProducerSending(caf::actor_system &system, std::vector<std:
 }
 
 long long handleMaxThroughput(caf::actor_system &system, std::vector<std::string> &args) {
-    int parallelism = 10;
+    int parallelism = 1;
     if (args.size() > 2) {
         parallelism = std::atoi(args[2].c_str());;
     }
@@ -218,6 +229,7 @@ long long handleMaxThroughput(caf::actor_system &system, std::vector<std::string
                 });
         // TODO：
         thread_vector.emplace_back(th);
+        // th->detach();
     }
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -225,6 +237,14 @@ long long handleMaxThroughput(caf::actor_system &system, std::vector<std::string
     finish_latch.await();
     auto spent_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::high_resolution_clock::now() - start).count();
+
+    for( auto th : thread_vector) {
+        th->join();
+    }
+
+    for( auto th : thread_vector) {
+        delete th;
+    }
 
     std::cout << "Max throughput:" << std::endl;
     std::cout << "\t" << n << " ops" << std::endl;

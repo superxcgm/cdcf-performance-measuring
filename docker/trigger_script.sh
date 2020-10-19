@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 
-set timeout 300
+set timeout 600
 spawn ./cdcf_performance_measuring
 send "enqueueing 10000000\r"
 send "dequeueing 10000000\r"
